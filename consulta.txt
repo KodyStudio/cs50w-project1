@@ -1,0 +1,1 @@
+SELECT isbn, title, author, year from books where upper(author)='a' or upper(author) LIKE upper('%a%') or upper(title)='a' or upper(title) LIKE upper('a') or upper(year)='a' or upper(year) LIKE upper('a') GROUP BY title, isbn, author, year
