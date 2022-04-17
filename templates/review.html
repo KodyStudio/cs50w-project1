@@ -1,53 +1,95 @@
 {% extends 'layout.html'%}
-{% block title %} Login {% endblock %}
+{% block title %} review {% endblock %}
 
 {% block content %} 
 
-<div class="container">
-    <div class="row">
-        
+<div class="container mt-5">
+  <div class="row">
+    <div class="col-lg-3">
+      
+      <img src="{{ url_for('static', filename='img/reviewimg.jpg') }}" alt="" class="img-fluid" >
+
     </div>
-</div>
-<p>{{books["title"]}}</p>
-<p>{{books["author"]}}</p>
-<p>{{books["year"]}}</p>
-<p>{{books["isbn"]}}</p>
 
-<div class="container">
-<div class="row d-flex justify-content-center">
-    <div class="col-md-8 col-lg-6">
-      <div class="card shadow-0 border" style="background-color: #f0f2f5;">
-        <div class="card-body p-4">
-          <div class="form-outline mb-4">
-            <input type="text" id="addANote" class="form-control" placeholder="Type comment..." />
-            <label class="form-label" for="addANote">+ Add a note</label>
-          </div>
-  
-          <div class="card mb-4">
-            <div class="card-body">
-              <p>Type your note, and hit enter to add it</p>
-  
-              <div class="d-flex justify-content-between">
-                <div class="d-flex flex-row align-items-center">
-                  <img src="https://i.pinimg.com/564x/76/4d/59/764d59d32f61f0f91dec8c442ab052c5.jpg" class="mr-1" alt="avatar" width="25"
-                    height="25" />
-                  <p class="small mb-0 ms-2"> Martha</p>
-                </div>
-                <div class="d-flex flex-row align-items-center">
-                  <p class="small text-muted mb-0">Upvote?</p>
-                  <i class="far fa-thumbs-up mx-2 fa-xs text-black" style="margin-top: -0.16rem;"></i>
-                  <p class="small text-muted mb-0">3</p>
-                </div>
-              </div>
-            </div>
-          </div>
-  
-          
+    <div class="col-lg-3">
 
-          </div>
+      <h1> {{books["title"]}} </h1>
+
+      <h2><small class="text-muted"><p>{{books["author"]}}</p></small></h2>
+
+      <p class="lead"><strong>year: </strong> {{books["year"]}} </p> 
+      <p class="lead"><strong>isbn: </strong> {{books["isbn"]}} </p> 
+      
+
+      <p class="lead"> </p>
+
+    </div>
+  
+
+    
+    <div class="col-lg-6">
+
+      {% for reviews in reviews %}
+      <div class="card p-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="user d-flex flex-row align-items-center"> <i class="fa-solid fa-user mr-2"></i>  <span><small class="font-weight-bold text-primary">{{reviews["username"]}}</small> 
+              </span> 
+            </div> <small>2022</small>
+        </div>
+        <div class="action d-flex justify-content-between mt-2 align-items-center">
+            <div class="reply px-4"> <small class="font-weight-bold">{{reviews["comentario"]}}</small> </div>
+            <div class="icons align-items-center"> <i class="fa fa-star text-warning"> {{reviews["puntuacion"]}}</i>  </div>
         </div>
       </div>
+      {% endfor %}
+
+      <form action="/review/{{books['id']}}" method="post">
+  
+        <div class="form-group">
+          <label for="exampleFormControlSelect1">Calificacion</label>
+          <select class="form-control" id="exampleFormControlSelect1" name="puntuacion" 
+          {% if count_comment > 0 %}
+          disabled
+          {% else %}
+          required
+          {% endif %}>
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="exampleFormControlTextarea1">Comentario</label>
+          <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" name="comentario" 
+          {% if count_comment > 0 %}
+          disabled
+          {% else %}
+          required
+          {% endif %}
+          ></textarea>
+        </div>
+        <button class="btn btn-dark" type="submit"
+        {% if count_comment > 0 %}
+        disabled
+        {% else %}
+        required
+        {% endif %}
+        >Enviar review</button>
+        {% if count_comment > 0 %}
+        <div class="alert alert-danger mt-3" role="alert">
+          No puedes hacer más de un comentario
+        </div>
+        {% else %}
+        {% endif %}
+      </form>
+
     </div>
   </div>
 </div>
+
+
+
+          
 {% endblock %}

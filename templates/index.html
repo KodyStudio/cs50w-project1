@@ -6,11 +6,29 @@
 
 <!-- <body style="background-color: #282828;"> -->
 
+<div class="container">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="float-right">
+        <ul class="navbar-nav ml-auto mt-2">
+          <li class="nav-item"><a class="nav-link" href="/logout">Cerrar sesion</a></li>
+      </ul> 
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <div class="container mt-5">
     <div class="row height d-flex justify-content-center align-items-center">
         <div class="col-md-6">
             <form action="/" method="post" autocomplate="off">
-                <div class="form" > <i class="fa fa-search ml-2"></i> <input type="text" name="busqueda" id="texto" class="form-control form-input" placeholder="Buscar el libro..."> <span class="left-pan"><i class="fa fa-microphone mr-2" id="micro" type="button"></i></span> </div>
+                <div class="form" > <i class="fa fa-search ml-2"></i> 
+                  <input type="text" name="busqueda" id="texto" class="form-control form-input" placeholder="Buscar el libro..."> 
+                  <span class="left-pan">
+                    <i class="fa-solid fa-paper-plane mr-2" id="micro" type="button"></i>
+                  </span> 
+                </div>
             </form>
         </div>
     </div>
@@ -18,12 +36,13 @@
 
 <div class="container mt-5">
     <div class="row pb-5 mb-4">
+    {% if resultado.rowcount > 0 %}
       {% for resultado in resultado %}
         <div class="col-lg-3 col-md-6 mb-4 mb-lg-0 mt-2">
           <!-- Card-->
           <div class="card rounded shadow p-3 mb-5 bg-white rounded">
             <div class="card-body p-4">
-              <h5> <a href="/review/{{resultado["id"]}}" class="text-dark">{{resultado["title"]}}</a></h5>
+              <h5> <a href="/review/{{resultado['id']}}" class="text-dark">{{resultado["title"]}}</a></h5>
               <small>{{resultado["year"]}}</small>
               <p class="small text-muted font-italic">{{resultado["author"]}}</p>
               <p>{{resultado["isbn"]}}</p>
@@ -31,10 +50,21 @@
           </div>
         </div>
       {% endfor %}
+      {% else %}
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="alert alert-danger text-center" role="alert">
+              No se encuentran resultados
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {% endif %}
     </div>
 </div>
-
-<script src="{{ url_for('static', filename='js/voice.js')}}"></script>
 
 </body>
 
