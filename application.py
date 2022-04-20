@@ -1,5 +1,6 @@
 from asyncio.windows_events import NULL
 import os
+import requests
 from django.shortcuts import render
 
 from flask import Flask, flash, redirect, render_template, request, session, jsonify
@@ -9,6 +10,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.sql.elements import Null
 from sqlalchemy.orm import scoped_session, sessionmaker
 from werkzeug.security import check_password_hash, generate_password_hash
+
 
 app = Flask(__name__)
 
@@ -49,6 +51,41 @@ def review(id):
 
         db.commit()
 
+    isbn = db.execute("SELECT isbn as isbn from books where id=:id",
+                      {"id": id}).fetchone()["isbn"]
+
+    response = requests.get(
+        "https://www.googleapis.com/books/v1/volumes?q=isbn:"+isbn).json()
+
+    # la imagen desde la api
+
+    if(response.get('totalItems') != 0):
+        data = response.get('items')[0]
+        volumeInfo = data.get("volumeInfo")
+        imagen = volumeInfo.get("imageLinks")
+
+        if not imagen:
+            imagen = ("https://media.istockphoto.com/vectors/error-page-or-file-not-found-icon-vector-id924949200?k=20&m=924949200&s=170667a&w=0&h=-g01ME1udkojlHCZeoa1UnMkWZZppdIFHEKk6wMvxrs=")
+        else:
+            imagen = imagen.get("thumbnail")
+    else:
+        imagen = (
+            "https://media.istockphoto.com/vectors/error-page-or-file-not-found-icon-vector-id924949200?k=20&m=924949200&s=170667a&w=0&h=-g01ME1udkojlHCZeoa1UnMkWZZppdIFHEKk6wMvxrs=")
+
+    # puntaje promedio desde la api
+
+    if(response.get('totalItems') != 0):
+        data = response.get('items')[0]
+        volumeInfo = data.get("volumeInfo")
+        averageRating = volumeInfo.get("averageRating")
+        ratingsCount = volumeInfo.get("ratingsCount")
+
+        print("averageRating:", averageRating)
+        print("ratingsCount:", ratingsCount)
+    else:
+        averageRating = -1
+        ratingsCount = -1
+
     books = db.execute(
         "SELECT * FROM books WHERE id = :id", {"id": id}).fetchone()
 
@@ -60,9 +97,7 @@ def review(id):
     count_comment = db.execute(
         "SELECT count(*)as conteo from reviews where user_id = :user_id and book_id = :id", {"user_id": user_id, "id": id}).fetchone()["conteo"]
 
-    print("_-----", count_comment)
-
-    return render_template("review.html", books=books, reviews=reviews, count_comment=count_comment)
+    return render_template("review.html", books=books, reviews=reviews, count_comment=count_comment, imagen=imagen, averageRating=averageRating, ratingsCount=ratingsCount)
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -171,25 +206,40 @@ def logout():
     return redirect("/")
 
 
+@app.route("/error")
+@login_required
+def error():
+
+    return render_template("404.html")
+
+
 @app.route("/api/<code>")
 @login_required
 def get_book_by_code(code):
+
+    response = requests.get(
+        "https://www.googleapis.com/books/v1/volumes?q=isbn:"+code).json()
+
+    if(response.get('totalItems') != 0):
+        data = response.get('items')[0]
+        volumeInfo = data.get("volumeInfo")
+        averageRating = volumeInfo.get("averageRating")
+        ratingsCount = volumeInfo.get("ratingsCount")
+    else:
+        return redirect("/error")
+
     book = db.execute("SELECT * FROM books WHERE isbn = :code",
                       {"code": code}).fetchone()
 
     review_count = db.execute(
         "SELECT count(*)as conteo from reviews where book_id = :code", {"code": book["id"]}).fetchone()["conteo"]
 
-    # select count (review.id), books.id, books.title, books.author, books.year  from books
-    # inner join reviews on reviews.book_id = books.id
-    # group by books.id, books.title, books.author, books.year
-
-    print(review_count)
-
     return jsonify(
         tile=book.title,
         author=book.author,
         year=book.year,
         isbn=book.isbn,
-        review_count=review_count
+        review_count=review_count,
+        averageRating=averageRating,
+        ratingsCount=ratingsCount
     )
